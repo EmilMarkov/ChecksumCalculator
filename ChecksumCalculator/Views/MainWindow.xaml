@@ -9,7 +9,18 @@
         Height="450" Width="800"
         WindowStartupLocation="CenterScreen">
 
-    <Grid>
-        
+    <Grid Background="#0F2C57">
+        <StackPanel Margin="10">
+            <Button Height="30" Content="Add File" Command="{Binding AddFileCommand}" Margin="0,0,0,5" />
+            <ListView ItemsSource="{Binding FileItems}" Margin="0,0,0,0">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Header="File Name" DisplayMemberBinding="{Binding FileName}" Width="200" />
+                        <GridViewColumn Header="Checksum" DisplayMemberBinding="{Binding Checksum}" Width="200" />
+                        <GridViewColumn Header="Result" DisplayMemberBinding="{Binding Result}" Width="340" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+        </StackPanel>
     </Grid>
 </Window>
