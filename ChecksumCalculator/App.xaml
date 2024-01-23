@@ -4,6 +4,11 @@
              xmlns:local="clr-namespace:ChecksumCalculator"
              StartupUri="Views\MainWindow.xaml">
     <Application.Resources>
-        
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Views/Style/ButtonStyle.xaml"/>
+                <ResourceDictionary Source="Views/Style/TableStyle.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+        </ResourceDictionary>
     </Application.Resources>
 </Application>
