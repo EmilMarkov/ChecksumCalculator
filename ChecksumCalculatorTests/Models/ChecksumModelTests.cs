@@ -1,6 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
+using CryptSharp;
 
 namespace ChecksumCalculator.Tests
 {
@@ -39,10 +40,11 @@ namespace ChecksumCalculator.Tests
             for (int i = 1; i <= NumberOfTestFiles; i++)
             {
                 string filePath = Path.Combine(TestFilesDirectory, $"testfile{i}.txt");
-                string checksum = ChecksumModel.CalculateChecksum(filePath);
-                bool verificationResult = ChecksumModel.VerifyChecksum(filePath, checksum);
 
-                Assert.IsTrue(verificationResult, $"Checksum verification failed for file {filePath}");
+                string checksum_model = ChecksumModel.CalculateChecksum(filePath);
+                string checksum_library = EasyEncryption.SHA.ComputeSHA256Hash(File.ReadAllText(filePath));
+
+                Assert.AreEqual(checksum_library, checksum_model, $"Invalid checksum for file {filePath}");
             }
         }
 
