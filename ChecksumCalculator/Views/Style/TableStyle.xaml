@@ -6,7 +6,7 @@
         <Setter Property="Background" Value="#161b22"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="Margin" Value="0 0 0 0"/>
-        <Setter Property="Padding" Value="6,4"/>
+        <Setter Property="Padding" Value="12,4"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="GridViewColumnHeader">
@@ -20,10 +20,10 @@
 
     <!-- Стиль для ListViewItem -->
     <Style TargetType="ListViewItem">
-        <Setter Property="Background" Value="#161b22"/>
+        <Setter Property="Background" Value="#3e3f45"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="Margin" Value="2 1 2 0"/>
-        <Setter Property="Padding" Value="0,4"/>
+        <Setter Property="Height" Value="30"/>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ListViewItem">
@@ -33,11 +33,6 @@
                 </ControlTemplate>
             </Setter.Value>
         </Setter>
-        <Style.Triggers>
-            <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="Background" Value="#3e3f45"/>
-            </Trigger>
-        </Style.Triggers>
     </Style>
 
 </ResourceDictionary>

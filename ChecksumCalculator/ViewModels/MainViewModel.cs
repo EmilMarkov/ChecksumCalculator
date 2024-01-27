@@ -60,9 +60,7 @@ namespace ChecksumCalculator
                         }
                         else
                         {
-                            await Task.Run(() => ChecksumModel.UpdateChecksum(fileItem.FilePath));
-                            fileItem.Checksum = calculatedChecksum;
-                            fileItem.Result = "Checksum is invalid. Right checksum was written";
+                            fileItem.Result = "Checksum is invalid";
                         }
                     }
                     else

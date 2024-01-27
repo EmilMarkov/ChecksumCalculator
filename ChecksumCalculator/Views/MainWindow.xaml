@@ -9,6 +9,10 @@
         Height="450" Width="800"
         WindowStartupLocation="CenterScreen">
 
+    <Window.Resources>
+        <local:UpdateButtonVisibilityConverter x:Key="UpdateButtonVisibilityConverter" />
+    </Window.Resources>
+
     <DockPanel Background="#0F2C57">
         <StackPanel DockPanel.Dock="Top" Margin="10">
             <Button Height="30" Content="Add File" Command="{Binding AddFileCommand}" Margin="0" />
@@ -16,9 +20,30 @@
         <ListView BorderThickness="0" Background="#0F2C57" ItemsSource="{Binding FileItems}" Margin="10,0,10,10">
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="File Name" DisplayMemberBinding="{Binding FileName}" Width="300" />
-                    <GridViewColumn Header="Checksum" DisplayMemberBinding="{Binding Checksum}" Width="200" />
-                    <GridViewColumn Header="Result" DisplayMemberBinding="{Binding Result}" Width="230" />
+                    <GridViewColumn Header="File Name" DisplayMemberBinding="{Binding FileName}" Width="250" />
+                    <GridViewColumn Header="Checksum" DisplayMemberBinding="{Binding Checksum}" Width="290" />
+                    <GridViewColumn Header="Result" Width="190">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <TextBlock VerticalAlignment="Center" Text="{Binding Result}" Margin="0 0 10 0" />
+
+                                    <Button Height="30"
+                                            Width="60"
+                                            Grid.Column="1"
+                                            Content="Update"
+                                            Command="{Binding UpdateChecksumCommand}"
+                                            Visibility="{Binding Result, Converter={StaticResource UpdateButtonVisibilityConverter}}"
+                                            HorizontalAlignment="Left" />
+                                </Grid>
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
                 </GridView>
             </ListView.View>
         </ListView>
