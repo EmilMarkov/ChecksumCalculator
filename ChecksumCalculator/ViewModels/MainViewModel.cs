@@ -3,6 +3,8 @@ using System.Collections.ObjectModel;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using System.Security.Policy;
+using System.Windows.Forms;
 
 namespace ChecksumCalculator
 {
@@ -17,6 +19,7 @@ namespace ChecksumCalculator
         #region Commands
 
         public DelegateCommand AddFileCommand { get; }
+        public DelegateCommand AddFolderCommand { get; }
 
         #endregion
 
@@ -25,6 +28,7 @@ namespace ChecksumCalculator
         public MainViewModel()
         {
             AddFileCommand = new DelegateCommand(_ => AddFile());
+            AddFolderCommand = new DelegateCommand(_ => AddFolder());
         }
 
         #endregion
@@ -33,7 +37,7 @@ namespace ChecksumCalculator
 
         private async void AddFile()
         {
-            var openFileDialog = new OpenFileDialog
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "Select a file",
                 Filter = "All files (*.*)|*.*",
@@ -44,6 +48,11 @@ namespace ChecksumCalculator
             {
                 foreach (var fileName in openFileDialog.FileNames)
                 {
+                    if (Path.GetExtension(fileName).Equals(".checksum", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     var fileItem = new FileItemViewModel { FilePath = fileName };
 
                     string checksumFilePath = fileName + ".checksum";
@@ -73,6 +82,70 @@ namespace ChecksumCalculator
 
                     FileItems.Add(fileItem);
                 }
+            }
+        }
+
+        private void AddFolder()
+        {
+            var folderBrowserDialog = new FolderBrowserDialog
+            {
+                Description = "Select a folder"
+            };
+
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                string selectedFolder = folderBrowserDialog.SelectedPath;
+                AddFilesFromFolder(selectedFolder);
+            }
+        }
+
+        private async void AddFilesFromFolder(string folderPath)
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories);
+
+                foreach (var filePath in files)
+                {
+                    if (Path.GetExtension(filePath).Equals(".checksum", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var fileItem = new FileItemViewModel { FilePath = filePath };
+
+                    string checksumFilePath = filePath + ".checksum";
+
+                    if (File.Exists(checksumFilePath))
+                    {
+                        string existingChecksum = await Task.Run(() => File.ReadAllText(checksumFilePath).Trim());
+                        string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
+
+                        if (string.Equals(existingChecksum, calculatedChecksum, StringComparison.OrdinalIgnoreCase))
+                        {
+                            fileItem.Checksum = existingChecksum;
+                            fileItem.Result = "Checksum is valid";
+                        }
+                        else
+                        {
+                            fileItem.Result = "Checksum is invalid";
+                        }
+                    }
+                    else
+                    {
+                        string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
+                        await Task.Run(() => ChecksumModel.SaveChecksumToFile(fileItem.FilePath, calculatedChecksum));
+                        fileItem.Checksum = calculatedChecksum;
+                        fileItem.Result = "Checksum calculated";
+                    }
+
+                    FileItems.Add(fileItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Обработка ошибок при доступе к файлам или другим проблемам
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
