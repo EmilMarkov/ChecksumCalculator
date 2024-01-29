@@ -1,7 +1,7 @@
 ﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.IO;
-using CryptSharp;
+using System.Threading.Tasks;
 
 namespace ChecksumCalculator.Tests
 {
@@ -34,8 +34,20 @@ namespace ChecksumCalculator.Tests
             Directory.Delete(TestFilesDirectory);
         }
 
+        private string GenerateRandomString()
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            Random random = new Random();
+            char[] randomString = new char[10];
+            for (int i = 0; i < 10; i++)
+            {
+                randomString[i] = chars[random.Next(chars.Length)];
+            }
+            return new string(randomString);
+        }
+        
         [TestMethod]
-        public void CalculateAndVerifyChecksumsForTestFiles()
+        public void TestChecksumCalculating()
         {
             for (int i = 1; i <= NumberOfTestFiles; i++)
             {
@@ -48,16 +60,22 @@ namespace ChecksumCalculator.Tests
             }
         }
 
-        private string GenerateRandomString()
+        [TestMethod]
+        public async Task TestChecksumVerifying()
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
-            Random random = new Random();
-            char[] randomString = new char[10];
-            for (int i = 0; i < 10; i++)
-            {
-                randomString[i] = chars[random.Next(chars.Length)];
-            }
-            return new string(randomString);
+            string filePath = Path.Combine(TestFilesDirectory, "testfile3.txt");
+            string checksumFilePath = filePath + ".checksum";
+            string randomString = GenerateRandomString();
+
+            File.WriteAllText(filePath, randomString);
+            ChecksumModel.SaveChecksumToFile(filePath, ChecksumModel.CalculateChecksum(filePath));
+
+            var fileItem = new FileItemViewModel { FilePath = filePath };
+
+            await ChecksumModel.VerifyChecksum(checksumFilePath, fileItem);
+
+            Assert.AreEqual("Checksum is valid", fileItem.Result);
         }
+
     }
 }

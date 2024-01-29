@@ -24,7 +24,7 @@ namespace ChecksumCalculator
             File.WriteAllText(filePath + ".checksum", checksum);
         }
 
-        public async static void VerifyChecksum(string checksumFilePath, FileItemViewModel fileItem)
+        public async static Task VerifyChecksum(string checksumFilePath, FileItemViewModel fileItem)
         {
             if (File.Exists(checksumFilePath))
             {
