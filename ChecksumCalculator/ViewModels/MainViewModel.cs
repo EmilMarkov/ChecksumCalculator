@@ -64,7 +64,7 @@ namespace ChecksumCalculator
             }
         }
 
-        private void AddFolder()
+        private async void AddFolder()
         {
             var folderBrowserDialog = new FolderBrowserDialog
             {
@@ -74,11 +74,11 @@ namespace ChecksumCalculator
             if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
             {
                 string selectedFolder = folderBrowserDialog.SelectedPath;
-                AddFilesFromFolder(selectedFolder);
+                await AddFilesFromFolder(selectedFolder);
             }
         }
 
-        private async void AddFilesFromFolder(string folderPath)
+        private async Task AddFilesFromFolder(string folderPath)
         {
             try
             {
