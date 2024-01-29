@@ -57,28 +57,7 @@ namespace ChecksumCalculator
 
                     string checksumFilePath = fileName + ".checksum";
 
-                    if (File.Exists(checksumFilePath))
-                    {
-                        string existingChecksum = await Task.Run(() => File.ReadAllText(checksumFilePath).Trim());
-                        string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
-
-                        if (string.Equals(existingChecksum, calculatedChecksum, StringComparison.OrdinalIgnoreCase))
-                        {
-                            fileItem.Checksum = existingChecksum;
-                            fileItem.Result = "Checksum is valid";
-                        }
-                        else
-                        {
-                            fileItem.Result = "Checksum is invalid";
-                        }
-                    }
-                    else
-                    {
-                        string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
-                        await Task.Run(() => ChecksumModel.SaveChecksumToFile(fileItem.FilePath, calculatedChecksum));
-                        fileItem.Checksum = calculatedChecksum;
-                        fileItem.Result = "Checksum calculated";
-                    }
+                    ChecksumModel.VerifyChecksum(checksumFilePath, fileItem);
 
                     FileItems.Add(fileItem);
                 }
@@ -116,28 +95,7 @@ namespace ChecksumCalculator
 
                     string checksumFilePath = filePath + ".checksum";
 
-                    if (File.Exists(checksumFilePath))
-                    {
-                        string existingChecksum = await Task.Run(() => File.ReadAllText(checksumFilePath).Trim());
-                        string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
-
-                        if (string.Equals(existingChecksum, calculatedChecksum, StringComparison.OrdinalIgnoreCase))
-                        {
-                            fileItem.Checksum = existingChecksum;
-                            fileItem.Result = "Checksum is valid";
-                        }
-                        else
-                        {
-                            fileItem.Result = "Checksum is invalid";
-                        }
-                    }
-                    else
-                    {
-                        string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
-                        await Task.Run(() => ChecksumModel.SaveChecksumToFile(fileItem.FilePath, calculatedChecksum));
-                        fileItem.Checksum = calculatedChecksum;
-                        fileItem.Result = "Checksum calculated";
-                    }
+                    ChecksumModel.VerifyChecksum(checksumFilePath, fileItem);
 
                     FileItems.Add(fileItem);
                 }
