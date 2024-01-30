@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Security.Cryptography;
+using System.Threading.Tasks;
 
 namespace ChecksumCalculator
 {
@@ -8,11 +9,11 @@ namespace ChecksumCalculator
     {
         public static string CalculateChecksum(string filePath)
         {
-            using (var md5 = MD5.Create())
+            using (var sha256 = SHA256.Create())
             {
                 using (var stream = File.OpenRead(filePath))
                 {
-                    byte[] hash = md5.ComputeHash(stream);
+                    byte[] hash = sha256.ComputeHash(stream);
                     return BitConverter.ToString(hash).Replace("-", "").ToLower();
                 }
             }
@@ -23,10 +24,30 @@ namespace ChecksumCalculator
             File.WriteAllText(filePath + ".checksum", checksum);
         }
 
-        public static bool VerifyChecksum(string filePath, string checksum)
+        public async static Task VerifyChecksum(string checksumFilePath, FileItemViewModel fileItem)
         {
-            string calculatedChecksum = CalculateChecksum(filePath);
-            return string.Equals(calculatedChecksum, checksum, StringComparison.OrdinalIgnoreCase);
+            if (File.Exists(checksumFilePath))
+            {
+                string existingChecksum = await Task.Run(() => File.ReadAllText(checksumFilePath).Trim());
+                string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
+
+                if (string.Equals(existingChecksum, calculatedChecksum, StringComparison.OrdinalIgnoreCase))
+                {
+                    fileItem.Checksum = existingChecksum;
+                    fileItem.Result = "Checksum is valid";
+                }
+                else
+                {
+                    fileItem.Result = "Checksum is invalid";
+                }
+            }
+            else
+            {
+                string calculatedChecksum = await Task.Run(() => ChecksumModel.CalculateChecksum(fileItem.FilePath));
+                await Task.Run(() => ChecksumModel.SaveChecksumToFile(fileItem.FilePath, calculatedChecksum));
+                fileItem.Checksum = calculatedChecksum;
+                fileItem.Result = "Checksum calculated";
+            }
         }
 
         public static void UpdateChecksum(string filePath)

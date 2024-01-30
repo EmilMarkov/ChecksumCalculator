@@ -2,6 +2,9 @@
 using System.Collections.ObjectModel;
 using System;
 using System.IO;
+using System.Threading.Tasks;
+using System.Security.Policy;
+using System.Windows.Forms;
 
 namespace ChecksumCalculator
 {
@@ -16,6 +19,7 @@ namespace ChecksumCalculator
         #region Commands
 
         public DelegateCommand AddFileCommand { get; }
+        public DelegateCommand AddFolderCommand { get; }
 
         #endregion
 
@@ -24,15 +28,16 @@ namespace ChecksumCalculator
         public MainViewModel()
         {
             AddFileCommand = new DelegateCommand(_ => AddFile());
+            AddFolderCommand = new DelegateCommand(_ => AddFolder());
         }
 
         #endregion
 
         #region Private Methods
 
-        private void AddFile()
+        private async void AddFile()
         {
-            var openFileDialog = new OpenFileDialog
+            var openFileDialog = new Microsoft.Win32.OpenFileDialog
             {
                 Title = "Select a file",
                 Filter = "All files (*.*)|*.*",
@@ -43,37 +48,62 @@ namespace ChecksumCalculator
             {
                 foreach (var fileName in openFileDialog.FileNames)
                 {
+                    if (Path.GetExtension(fileName).Equals(".checksum", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     var fileItem = new FileItemViewModel { FilePath = fileName };
 
                     string checksumFilePath = fileName + ".checksum";
 
-                    if (File.Exists(checksumFilePath))
-                    {
-                        string existingChecksum = File.ReadAllText(checksumFilePath).Trim();
-                        string calculatedChecksum = ChecksumModel.CalculateChecksum(fileItem.FilePath);
-
-                        if (string.Equals(existingChecksum, calculatedChecksum, StringComparison.OrdinalIgnoreCase))
-                        {
-                            fileItem.Checksum = existingChecksum;
-                            fileItem.Result = "Checksum is valid";
-                        }
-                        else
-                        {
-                            ChecksumModel.UpdateChecksum(fileItem.FilePath);
-                            fileItem.Checksum = calculatedChecksum;
-                            fileItem.Result = "Checksum is invalid. Right checksum was write";
-                        }
-                    }
-                    else
-                    {
-                        string calculatedChecksum = ChecksumModel.CalculateChecksum(fileItem.FilePath);
-                        ChecksumModel.SaveChecksumToFile(fileItem.FilePath, calculatedChecksum);
-                        fileItem.Checksum = calculatedChecksum;
-                        fileItem.Result = "Checksum calculated";
-                    }
+                    ChecksumModel.VerifyChecksum(checksumFilePath, fileItem);
 
                     FileItems.Add(fileItem);
                 }
+            }
+        }
+
+        private async void AddFolder()
+        {
+            var folderBrowserDialog = new FolderBrowserDialog
+            {
+                Description = "Select a folder"
+            };
+
+            if (folderBrowserDialog.ShowDialog() == DialogResult.OK)
+            {
+                string selectedFolder = folderBrowserDialog.SelectedPath;
+                await AddFilesFromFolder(selectedFolder);
+            }
+        }
+
+        private async Task AddFilesFromFolder(string folderPath)
+        {
+            try
+            {
+                string[] files = Directory.GetFiles(folderPath, "*", SearchOption.AllDirectories);
+
+                foreach (var filePath in files)
+                {
+                    if (Path.GetExtension(filePath).Equals(".checksum", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
+                    var fileItem = new FileItemViewModel { FilePath = filePath };
+
+                    string checksumFilePath = filePath + ".checksum";
+
+                    ChecksumModel.VerifyChecksum(checksumFilePath, fileItem);
+
+                    FileItems.Add(fileItem);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Обработка ошибок при доступе к файлам или другим проблемам
+                Console.WriteLine($"Error: {ex.Message}");
             }
         }
 
